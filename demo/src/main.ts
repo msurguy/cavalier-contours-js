@@ -10,6 +10,7 @@ import { OffsetScene } from "./scenes/offsetScene";
 import { BooleanScene } from "./scenes/booleanScene";
 import { ShapeScene } from "./scenes/shapeScene";
 import { HatchScene } from "./scenes/hatchScene";
+import { SvgStudioScene } from "./scenes/svgScene";
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
@@ -77,6 +78,7 @@ function recomputeGuarded(): void {
 const env: SceneEnv = {
   requestRender,
   requestRecompute: recomputeGuarded,
+  requestFit: () => fitView(),
   setStats,
   setWarning,
 };
@@ -86,6 +88,7 @@ const scenes: Scene[] = [
   new BooleanScene(env),
   new ShapeScene(env),
   new HatchScene(env),
+  new SvgStudioScene(env),
 ];
 
 // ---------------------------------------------------------------------------

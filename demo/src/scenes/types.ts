@@ -12,6 +12,8 @@ export interface SceneEnv {
   requestRender(): void;
   /** Recompute the scene's algorithm output (guarded), then redraw. */
   requestRecompute(): void;
+  /** Fit the view to the active scene's extents (e.g. after loading new geometry). */
+  requestFit(): void;
   setStats(rows: StatRow[]): void;
   setWarning(message: string | null): void;
 }

@@ -77,6 +77,7 @@ export function fillPlines(
   plines: readonly Polyline[],
   fillStyle: string,
   alpha = 1,
+  rule: CanvasFillRule = "evenodd",
 ): void {
   if (plines.length === 0) return;
   const path = new Path2D();
@@ -84,7 +85,7 @@ export function fillPlines(
   view.applyWorldTransform(ctx);
   ctx.globalAlpha = alpha;
   ctx.fillStyle = fillStyle;
-  ctx.fill(path, "evenodd");
+  ctx.fill(path, rule);
   ctx.globalAlpha = 1;
 }
 
