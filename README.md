@@ -116,6 +116,27 @@ npm run build
 
 There is also an interactive demo in [`demo/`](demo/) (`cd demo && npm install && npm run dev`).
 
+## Releasing
+
+Releases are published to npm automatically via [GitHub Actions](.github/workflows/release.yml)
+using npm **Trusted Publishing** (OIDC) — no `NPM_TOKEN` secret is stored anywhere, and every
+release carries a [provenance](https://docs.npmjs.com/generating-provenance-statements)
+attestation.
+
+To cut a release:
+
+```sh
+npm version patch          # or minor / major — bumps package.json, commits, and tags
+git push origin main --tags
+gh release create vX.Y.Z --generate-notes
+```
+
+Publishing a **GitHub Release** triggers the workflow, which typechecks, runs the full test
+suite, builds, and runs `npm publish --provenance`. Watch it with
+`gh run watch` — a green ✓ appears next to the new version on npm.
+
+The demo redeploys to [GitHub Pages](.github/workflows/pages.yml) on every push to `main`.
+
 ## License
 
 Licensed under either of
