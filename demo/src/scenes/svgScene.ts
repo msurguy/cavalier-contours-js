@@ -55,6 +55,8 @@ export class SvgStudioScene implements Scene {
   private stickerFill = "#ffffff";
   private rainbowStart = "#ff5d8f";
   private rainbowEnd = "#6fd7ff";
+  private rainbowRings = 6;
+  private rainbowOffset = 2.5;
 
   // computed results
   private offsetLoops: Polyline[] = [];
@@ -195,6 +197,30 @@ export class SvgStudioScene implements Scene {
         this.env.requestRender();
       });
     } else {
+      slider(params, {
+        label: "rings / layers",
+        min: 1,
+        max: 40,
+        step: 1,
+        value: this.rainbowRings,
+        format: (v) => v.toFixed(0),
+        onInput: (v) => {
+          this.rainbowRings = v;
+          this.env.requestRecompute();
+        },
+      });
+      slider(params, {
+        label: "ring offset",
+        min: 0.5,
+        max: 16,
+        step: 0.5,
+        value: this.rainbowOffset,
+        format: (v) => v.toFixed(1),
+        onInput: (v) => {
+          this.rainbowOffset = v;
+          this.env.requestRecompute();
+        },
+      });
       colorPicker(params, "range start", this.rainbowStart, (v) => {
         this.rainbowStart = v;
         this.env.requestRecompute();
@@ -356,12 +382,25 @@ export class SvgStudioScene implements Scene {
         this.stickerFills.push(...this.repeatedOffset(p.pline, this.stickerAmount, 1));
       }
     } else {
-      const closed = sel.filter((p) => p.closed);
-      const n = Math.max(1, closed.length - 1);
-      closed.forEach((p, i) => {
+      // Rainbow: for each selected path emit `rings` concentric offset layers,
+      // then color the whole ordered set across the range. One path → concentric
+      // bands; many paths → a gradient sweeping across everything.
+      const rings = Math.max(1, Math.round(this.rainbowRings));
+      const CAP = 5000;
+      const entries: Polyline[] = [];
+      for (const p of sel) {
+        if (!p.closed) continue;
+        for (const layer of this.concentricLayers(p.pline, rings, this.rainbowOffset)) {
+          entries.push(layer);
+          if (entries.length >= CAP) break;
+        }
+        if (entries.length >= CAP) break;
+      }
+      const total = entries.length;
+      entries.forEach((pline, i) => {
         this.rainbow.push({
-          pline: p.pline,
-          color: lerpHex(this.rainbowStart, this.rainbowEnd, closed.length === 1 ? 0 : i / n),
+          pline,
+          color: lerpHex(this.rainbowStart, this.rainbowEnd, total <= 1 ? 0 : i / (total - 1)),
         });
       });
     }
@@ -394,6 +433,33 @@ export class SvgStudioScene implements Scene {
     return loops;
   }
 
+  /**
+   * Concentric layers of a closed polyline: the original plus up to `rings-1`
+   * successive inward offsets at `spacing`, returned outermost-first so filling
+   * them in order paints inner bands over outer ones.
+   */
+  private concentricLayers(pline: Polyline, rings: number, spacing: number): Polyline[] {
+    const layers: Polyline[] = [pline];
+    if (rings <= 1 || spacing <= 0) return layers;
+    // +offset is inward for CCW in the y-up world (mirrors computeHatch).
+    const inward = pline.orientation() === "clockwise" ? -spacing : spacing;
+    let frontier: Polyline[] = [pline];
+    while (layers.length < rings) {
+      const next: Polyline[] = [];
+      for (const f of frontier) {
+        for (const res of f.parallelOffset(inward)) {
+          if (Math.abs(res.area()) > 1e-6) next.push(res);
+        }
+      }
+      if (next.length === 0) break;
+      for (const pl of next) {
+        if (layers.length < rings) layers.push(pl);
+      }
+      frontier = next;
+    }
+    return layers;
+  }
+
   private setStats(elapsed: number): void {
     const rows = [
       { label: "paths in SVG", value: String(this.imported.length) },
@@ -412,9 +478,10 @@ export class SvgStudioScene implements Scene {
       for (const p of this.stickerFills) length += p.pathLength();
     } else {
       resultLoops = this.rainbow.length;
+      for (const r of this.rainbow) length += r.pline.pathLength();
     }
     rows.push({ label: "result loops", value: String(resultLoops) });
-    if (this.mode !== "rainbow") rows.push({ label: "Σ result length", value: fmt(length) });
+    rows.push({ label: "Σ result length", value: fmt(length) });
     rows.push({ label: "compute", value: fmtMs(elapsed) });
     this.env.setStats(rows);
   }
@@ -507,6 +574,7 @@ export class SvgStudioScene implements Scene {
       ];
     }
     if (this.mode === "sticker") {
+      // Sticker silhouette FIRST = bottom of the paint order (under the art).
       return [
         { plines: this.stickerFills, fill: this.stickerFill, fillRule: "nonzero" },
         { plines: selectedPlines, stroke: "#111418", strokeWidth: 1 },
