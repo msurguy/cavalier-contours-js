@@ -176,25 +176,71 @@ interface PointerState {
 
 const pointer: PointerState = { drag: null, panning: false, lastX: 0, lastY: 0 };
 
+/** Live screen positions of every pointer currently down on the canvas. */
+const activePointers = new Map<number, { x: number; y: number }>();
+/** Two-finger pinch state (distance + midpoint in screen px); null when < 2 pointers. */
+let pinch: { dist: number; cx: number; cy: number } | null = null;
+
 function canvasPos(e: PointerEvent | WheelEvent): [number, number] {
   const rect = canvas.getBoundingClientRect();
   return [e.clientX - rect.left, e.clientY - rect.top];
 }
 
+/** Distance + midpoint of the first two active pointers. */
+function pinchMetrics(): { dist: number; cx: number; cy: number } {
+  const pts = [...activePointers.values()];
+  const dx = pts[0]!.x - pts[1]!.x;
+  const dy = pts[0]!.y - pts[1]!.y;
+  return {
+    dist: Math.hypot(dx, dy) || 1,
+    cx: (pts[0]!.x + pts[1]!.x) / 2,
+    cy: (pts[0]!.y + pts[1]!.y) / 2,
+  };
+}
+
+function clearSinglePointer(): void {
+  pointer.drag?.end?.();
+  pointer.drag = null;
+  pointer.panning = false;
+  canvas.classList.remove("dragging-geometry", "panning");
+}
+
 canvas.addEventListener("pointerdown", (e) => {
   if (e.button !== 0 && e.button !== 1) return;
   const [sx, sy] = canvasPos(e);
+  canvas.setPointerCapture(e.pointerId);
+  activePointers.set(e.pointerId, { x: sx, y: sy });
+
+  // Second finger down → enter pinch-zoom, abandoning any single-pointer drag/pan.
+  if (activePointers.size === 2) {
+    clearSinglePointer();
+    pinch = pinchMetrics();
+    return;
+  }
+  if (activePointers.size > 2) return;
+
   pointer.lastX = sx;
   pointer.lastY = sy;
   pointer.drag = e.button === 0 ? activeScene.hitTest(sx, sy, view) : null;
   pointer.panning = pointer.drag === null;
-  canvas.setPointerCapture(e.pointerId);
   canvas.classList.toggle("dragging-geometry", pointer.drag !== null);
   canvas.classList.toggle("panning", pointer.panning);
 });
 
 canvas.addEventListener("pointermove", (e) => {
   const [sx, sy] = canvasPos(e);
+  if (activePointers.has(e.pointerId)) activePointers.set(e.pointerId, { x: sx, y: sy });
+
+  // Pinch-zoom (two fingers): scale about the midpoint and pan along with it.
+  if (pinch && activePointers.size >= 2) {
+    const m = pinchMetrics();
+    view.zoomAt(m.cx, m.cy, m.dist / pinch.dist);
+    view.panBy(m.cx - pinch.cx, m.cy - pinch.cy);
+    pinch = m;
+    requestRender();
+    return;
+  }
+
   const [wx, wy] = view.toWorld(sx, sy);
   hudCoordsEl.textContent = `x ${wx >= 0 ? "+" : ""}${wx.toFixed(3)}  y ${wy >= 0 ? "+" : ""}${wy.toFixed(3)}`;
 
@@ -213,11 +259,26 @@ canvas.addEventListener("pointermove", (e) => {
 });
 
 function endPointer(e: PointerEvent): void {
-  pointer.drag?.end?.();
-  pointer.drag = null;
-  pointer.panning = false;
-  canvas.classList.remove("dragging-geometry", "panning");
+  activePointers.delete(e.pointerId);
   if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
+
+  if (activePointers.size >= 2) {
+    pinch = pinchMetrics(); // still pinching with the remaining fingers
+    return;
+  }
+  pinch = null;
+  if (activePointers.size === 1) {
+    // dropped from pinch to a single finger → keep panning, no jump
+    const rem = [...activePointers.values()][0]!;
+    pointer.drag = null;
+    pointer.panning = true;
+    pointer.lastX = rem.x;
+    pointer.lastY = rem.y;
+    canvas.classList.remove("dragging-geometry");
+    canvas.classList.add("panning");
+    return;
+  }
+  clearSinglePointer();
 }
 
 canvas.addEventListener("pointerup", endPointer);

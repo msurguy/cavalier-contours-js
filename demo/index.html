@@ -2,7 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0"
+    />
+    <meta name="theme-color" content="#070d14" />
+    <meta
+      name="description"
+      content="Interactive demo of cavalier-contours-js — a pure-TypeScript 2D polyline offset & boolean library with arc support."
+    />
     <title>cavalier-contours-js — interactive demo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -30,17 +38,73 @@
             <h1>cavalier<span>//</span>contours</h1>
             <p>2-D polyline offset &amp; boolean &mdash; pure TS port</p>
           </div>
+          <a
+            class="brand-link"
+            href="https://github.com/msurguy/cavalier-contours-js"
+            target="_blank"
+            rel="noopener"
+            title="Source on GitHub"
+            aria-label="Source on GitHub"
+          >
+            <svg viewBox="0 0 16 16" width="19" height="19" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+              />
+            </svg>
+          </a>
         </header>
         <nav id="scene-tabs" aria-label="Scenes"></nav>
         <div id="scene-blurb"></div>
         <section id="controls"></section>
+        <details id="usage-panel" class="usage">
+          <summary>Using the library</summary>
+          <div class="usage-body">
+            <p class="usage-lead">
+              Pure TypeScript, zero runtime dependencies. Runs in the browser,
+              a worker, or Node. Install from npm:
+            </p>
+            <pre class="usage-code"><code>npm install cavalier-contours-js</code></pre>
+            <pre class="usage-code"><code>import { plineClosed }
+  from "cavalier-contours-js";
+
+// x, y, bulge  (bulge 1 = half-circle)
+const pl = plineClosed([
+  [0, 0, 0], [10, 0, 1],
+  [10, 5, 0], [0, 5, 1],
+]);
+
+pl.parallelOffset(1);    // -> Polyline[]
+pl.boolean(other, "or"); // or|and|not|xor</code></pre>
+            <div class="usage-links">
+              <a
+                href="https://github.com/msurguy/cavalier-contours-js"
+                target="_blank"
+                rel="noopener"
+                >GitHub&nbsp;&#8599;</a
+              >
+              <a
+                href="https://www.npmjs.com/package/cavalier-contours-js"
+                target="_blank"
+                rel="noopener"
+                >npm&nbsp;&#8599;</a
+              >
+              <a
+                href="https://github.com/msurguy/cavalier-contours-js#readme"
+                target="_blank"
+                rel="noopener"
+                >Docs&nbsp;&#8599;</a
+              >
+            </div>
+          </div>
+        </details>
         <section id="stats-panel">
           <h2><span class="rule"></span>measurements<span class="rule"></span></h2>
           <dl id="stats"></dl>
         </section>
         <footer id="sidebar-footer">
           <div class="hint-row"><kbd>drag</kbd> vertex / geometry &nbsp;·&nbsp; <kbd>drag</kbd> empty = pan</div>
-          <div class="hint-row"><kbd>scroll</kbd> zoom &nbsp;·&nbsp; <kbd>F</kbd> fit view</div>
+          <div class="hint-row"><kbd>scroll</kbd> / <kbd>pinch</kbd> zoom &nbsp;·&nbsp; <kbd>F</kbd> / <kbd>&#8853;</kbd> fit view</div>
         </footer>
       </aside>
       <main id="viewport">
@@ -60,7 +124,7 @@
             <span id="tb-scene">POLYLINE OFFSET</span>
           </div>
           <div class="tb-row">
-            <span class="tb-label">lib</span><span class="tb-val">cavalier-contours-js 0.1.0</span>
+            <span class="tb-label">lib</span><span class="tb-val">cavalier-contours-js 0.1.1</span>
           </div>
           <div class="tb-row">
             <span class="tb-label">sheet</span><span class="tb-val" id="tb-sheet">01 / 04</span>

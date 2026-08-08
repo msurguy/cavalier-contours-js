@@ -102,6 +102,10 @@ body {
   font-weight: 400;
 }
 
+.brand-text {
+  min-width: 0;
+}
+
 .brand-text p {
   margin-top: 2px;
   font-family: var(--font-mono);
@@ -109,6 +113,114 @@ body {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-faint);
+}
+
+.brand-link {
+  flex: none;
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--text-dim);
+  border: 1px solid transparent;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.brand-link:hover {
+  color: var(--c-src);
+  border-color: var(--hairline-bright);
+}
+
+/* --- usage / "how to use" disclosure --- */
+
+.usage {
+  border-bottom: 1px solid var(--hairline);
+}
+
+.usage > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 12px 16px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  transition: color 120ms ease;
+}
+
+.usage > summary::-webkit-details-marker {
+  display: none;
+}
+
+.usage > summary::before {
+  content: "+";
+  color: var(--c-src);
+  font-size: 13px;
+  line-height: 1;
+  width: 9px;
+  text-align: center;
+}
+
+.usage[open] > summary::before {
+  content: "\2212"; /* minus */
+}
+
+.usage > summary:hover {
+  color: var(--text-dim);
+}
+
+.usage-body {
+  padding: 0 16px 14px;
+}
+
+.usage-lead {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.usage-code {
+  background: var(--bg-canvas);
+  border: 1px solid var(--hairline);
+  padding: 9px 11px;
+  margin-bottom: 10px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline-bright) transparent;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.usage-code code {
+  font-family: inherit;
+  white-space: pre;
+}
+
+.usage-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.usage-links a {
+  color: var(--c-src);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.usage-links a:hover {
+  text-decoration: underline;
 }
 
 /* --- scene tabs --- */
@@ -476,6 +588,9 @@ kbd {
   inset: 0;
   display: block;
   cursor: crosshair;
+  /* let the canvas own all touch gestures (pan / drag / pinch) instead of the
+     browser scrolling or page-zooming the demo away */
+  touch-action: none;
 }
 
 #canvas.hover-geometry {
@@ -628,17 +743,63 @@ kbd {
 @media (max-width: 760px) {
   #app {
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
     height: 100dvh;
   }
 
   #sidebar {
-    max-height: 46dvh;
+    max-height: 48dvh;
     border-right: 0;
     border-bottom: 1px solid var(--hairline-bright);
+    /* respect iOS notch / home-indicator insets on the top-docked panel */
+    padding-top: env(safe-area-inset-top);
+  }
+
+  #viewport {
+    min-height: 0;
   }
 
   #titleblock {
     display: none;
+  }
+
+  /* keep the HUD clear of the home indicator */
+  #hud {
+    bottom: max(14px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Touch / coarse-pointer devices: bigger tap targets. */
+@media (pointer: coarse) {
+  .scene-tab {
+    padding: 13px 12px 12px;
+  }
+
+  #fit-btn {
+    padding: 7px 12px;
+  }
+
+  input[type="range"] {
+    height: 26px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    width: 15px;
+    height: 21px;
+    margin-top: -9.5px;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 13px;
+    height: 19px;
+  }
+
+  .ctl-segmented button {
+    padding: 11px 4px;
+  }
+
+  .check-box {
+    width: 16px;
+    height: 16px;
   }
 }
