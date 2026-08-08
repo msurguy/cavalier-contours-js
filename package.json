@@ -1,0 +1,62 @@
+{
+  "name": "cavalier-contours-js",
+  "version": "0.1.0",
+  "description": "Pure TypeScript port of the cavalier_contours Rust library: 2D polyline parallel offsetting (with arc segments) and boolean operations.",
+  "license": "(MIT OR Apache-2.0)",
+  "author": "msurguy",
+  "homepage": "https://github.com/msurguy/cavalier-contours-js#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/msurguy/cavalier-contours-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/msurguy/cavalier-contours-js/issues"
+  },
+  "keywords": [
+    "polyline",
+    "offset",
+    "parallel-offset",
+    "boolean",
+    "arc",
+    "bulge",
+    "cad",
+    "geometry",
+    "2d",
+    "cavalier-contours"
+  ],
+  "type": "module",
+  "sideEffects": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "LICENSE-MIT",
+    "LICENSE-APACHE"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "prepare": "npm run build",
+    "prepack": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0"
+  }
+}
