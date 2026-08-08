@@ -7,6 +7,8 @@ Pure TypeScript/JavaScript port of the [cavalier_contours](https://github.com/jb
 Rust library — 2D polyline offsetting and boolean operations with **arc segment (bulge) support**.
 No Rust, no WASM: plain ES modules that run in any modern browser, web worker, or Node.
 
+**▶ [Live interactive demo](https://msurguy.github.io/cavalier-contours-js/)**
+
 Ported 1:1 from the Rust source (v0.7.0) and validated by the complete translated Rust test
 suite (232 tests). License: MIT OR Apache-2.0, same as the original. The bundled spatial index
 is a port of [static_aabb2d_index](https://github.com/jbuckmccready/static_aabb2d_index)
